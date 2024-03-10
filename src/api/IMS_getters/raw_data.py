@@ -373,69 +373,69 @@ class RawDataGetter:
             return station_parsed_data
         else:
             return None
-if __name__ == '__main__':
-
-    getter = RawDataGetter()
-    headers = {'Authorization': f'ApiToken {TOKEN}'}
-    stations = [2, 6, 8, 10, 11, 13, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 28, 29, 30, 32, 33, 35, 36, 41, 42,
-                     43, 44, 45, 46, 54, 58, 59, 60, 62, 64, 65, 67, 69, 73, 74, 75, 77, 78, 79, 82, 85, 90, 98, 99,
-                     106, 107, 112, 115, 121, 123, 124, 178, 186, 188, 202, 205, 206, 207, 208, 210, 211, 212, 218,
-                     224, 227, 228, 232, 233, 236, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250,
-                      251, 252, 257, 259, 263, 264, 265, 269, 270, 271, 274, 275, 276, 277, 278, 279, 280, 281, 282,283,
-                      284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 296, 297, 298, 299, 300, 301, 302, 303,
-                      304, 305, 306, 307, 309, 310, 311, 312, 313, 314, 315, 316, 317, 318, 319, 320, 322, 323, 324, 325,
-                       327, 328, 329, 330, 332, 333, 335, 336, 338, 343, 344, 345, 346, 348, 349, 350, 351, 352, 353, 354,
-                        355, 366, 367, 370, 373, 379, 380, 381, 411, 412, 443, 480, 498, 499]
-    request = {"request": "range",
-            "data": {"time_period": "daily",
-                    "specific_day": {
-                                "year": 2024,
-                                "month": 2,
-                                "day": 1
-                                },
-                    "specific_month" : {
-                                "year" : 2024,
-                                "month" : 11
-                    },
-                    "range" : {
-                        "from" : {
-                            "year" : 2024,
-                            "month": 1,
-                            "day" : 1
-                        },
-                        "to" : {
-                            "year" : 2024,
-                            "month" : 2,
-                            "day" : 2
-                        }
-
-                            }
-                    }
-
-            }
-    pprint.pprint(getter.get_stations(2))
-
-# def export_data(request):
+# if __name__ == '__main__':
+#
 #     getter = RawDataGetter()
-#     stations = getter.get_stations()
-#     for i, station in enumerate(stations):
-#         data = {}
-#         station_name = station["name"]
-#         station_id = station["stationId"]
-#         try:
-#             for monitor in station["monitors"]:
-#                 data_from_channel = getter.get_channels(station_id, channel_id=monitor["channelId"], request=request)
-#                 if data_from_channel:
-#                     values = []
-#                     dates = []
-#                     for data_item in data_from_channel['data']:
-#                         value = data_item['channels'][0]['value']
-#                         date = data_item['datetime']
-#                         values.append(value)
-#                         dates.append(date)
-#                     data[monitor['name']] = values
-#             data["dates"] = dates
-#             df = pd.DataFrame(data)
-#             df.to_csv(f"{station_name}_nov.csv")
-#         except Exception as err:
-#             print(station_name + " has an error")
+#     headers = {'Authorization': f'ApiToken {TOKEN}'}
+#     stations = [2, 6, 8, 10, 11, 13, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 28, 29, 30, 32, 33, 35, 36, 41, 42,
+#                      43, 44, 45, 46, 54, 58, 59, 60, 62, 64, 65, 67, 69, 73, 74, 75, 77, 78, 79, 82, 85, 90, 98, 99,
+#                      106, 107, 112, 115, 121, 123, 124, 178, 186, 188, 202, 205, 206, 207, 208, 210, 211, 212, 218,
+#                      224, 227, 228, 232, 233, 236, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250,
+#                       251, 252, 257, 259, 263, 264, 265, 269, 270, 271, 274, 275, 276, 277, 278, 279, 280, 281, 282,283,
+#                       284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 296, 297, 298, 299, 300, 301, 302, 303,
+#                       304, 305, 306, 307, 309, 310, 311, 312, 313, 314, 315, 316, 317, 318, 319, 320, 322, 323, 324, 325,
+#                        327, 328, 329, 330, 332, 333, 335, 336, 338, 343, 344, 345, 346, 348, 349, 350, 351, 352, 353, 354,
+#                         355, 366, 367, 370, 373, 379, 380, 381, 411, 412, 443, 480, 498, 499]
+#     request = {"request": "range",
+#             "data": {"time_period": "daily",
+#                     "specific_day": {
+#                                 "year": 2024,
+#                                 "month": 2,
+#                                 "day": 1
+#                                 },
+#                     "specific_month" : {
+#                                 "year" : 2024,
+#                                 "month" : 11
+#                     },
+#                     "range" : {
+#                         "from" : {
+#                             "year" : 2024,
+#                             "month": 1,
+#                             "day" : 1
+#                         },
+#                         "to" : {
+#                             "year" : 2024,
+#                             "month" : 2,
+#                             "day" : 2
+#                         }
+#
+#                             }
+#                     }
+#
+#             }
+#     pprint.pprint(getter.get_stations(2))
+#
+# # def export_data(request):
+# #     getter = RawDataGetter()
+# #     stations = getter.get_stations()
+# #     for i, station in enumerate(stations):
+# #         data = {}
+# #         station_name = station["name"]
+# #         station_id = station["stationId"]
+# #         try:
+# #             for monitor in station["monitors"]:
+# #                 data_from_channel = getter.get_channels(station_id, channel_id=monitor["channelId"], request=request)
+# #                 if data_from_channel:
+# #                     values = []
+# #                     dates = []
+# #                     for data_item in data_from_channel['data']:
+# #                         value = data_item['channels'][0]['value']
+# #                         date = data_item['datetime']
+# #                         values.append(value)
+# #                         dates.append(date)
+# #                     data[monitor['name']] = values
+# #             data["dates"] = dates
+# #             df = pd.DataFrame(data)
+# #             df.to_csv(f"{station_name}_nov.csv")
+# #         except Exception as err:
+# #             print(station_name + " has an error")
