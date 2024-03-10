@@ -10,7 +10,7 @@ load_dotenv()
 router = APIRouter()
 
 @router.get("/active-cities/")
-async def get_evaluation_status():
+async def get_active_cities():
     getter = RawDataGetter()
     cities_metadata = getter.get_stations()
     active_cities = {meta["stationId"]: meta["name"] for meta in cities_metadata

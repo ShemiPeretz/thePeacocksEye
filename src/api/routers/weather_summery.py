@@ -1,6 +1,4 @@
-import logging
-import os
-import traceback
+
 from .request_classes import WeatherSummary
 from src.api.IMS_getters.raw_data import RawDataGetter
 from fastapi import HTTPException, APIRouter
@@ -22,7 +20,7 @@ def get_channels_per_station(station_id, channels):
             station_channel_map[channel_name] = channel_id
     return station_channel_map
 @router.post("/weather_summery/")
-async def get_evaluation_status(request: WeatherSummary):
+async def get_weather_summery(request: WeatherSummary):
     station_id = request.dict()["station"]
     request = {"request": "time_period",
             "data": {"time_period": "latest"}
