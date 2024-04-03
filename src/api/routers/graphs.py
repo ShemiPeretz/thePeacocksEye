@@ -7,8 +7,6 @@ from request_classes import GraphMeta
 from fastapi import HTTPException, APIRouter
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
-import plotly.express as px
-import pandas as pd
 from datetime import datetime, timedelta
 load_dotenv()
 router = APIRouter()
@@ -16,6 +14,8 @@ router = APIRouter()
 from fastapi import FastAPI, HTTPException
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
+from plotly.io import write_html
 
 app = FastAPI()
 
@@ -44,7 +44,7 @@ def create_graph(data,x_name:str ,y_names:list, graph_type, x_size, y_size):
         fig = px.line(data, x=x_name, y=y_names,width=x_size, height=y_size, title='Interactive Line Chart')
     elif graph_type == "bar":
         fig = px.bar(data, x=x_name, y=y_names,width=x_size, height=y_size, title='Interactive Bar Chart')
-    graph_json = fig.to_json()
+    graph_json = fig.to_html()
 
     return graph_json
 def extract_data(chanel_json):
@@ -67,7 +67,9 @@ def get_time_graph(start_time,data, graph_type, x_size, y_size):
     hourly_ticks = pd.date_range(start=start_time, end=start_time + num_points * time_interval, freq='1D')
     fig.update_layout(
         xaxis=dict(tickmode='array', tickvals=hourly_ticks, ticktext=hourly_ticks.strftime('%Y-%m-%d %H:%M:%S')))
-    return fig
+    graph = fig.to_html(include_plotlyjs='cdn', full_html=False)
+
+    return graph
 @router.post("/graphs/")
 async def get_graph(request: GraphMeta):
     """
@@ -155,4 +157,5 @@ data_request = {"request": "range",
 # import pprint
 # data = RawDataGetter().get_channels(stations_id=6,channel_id=1,request=data_request)
 # pprint.pprint(data)
-get_time_graph(datetime(2024, 1, 1, 0, 0, 0), data={ "y2": [i for i in range(1000)]},graph_type="s",x_size= 1000,y_size=1000)
+# fig = go.Figure(data=go.Scatter(x=[1, 2, 3], y=[4, 1, 2]))
+# print(times)

@@ -439,3 +439,6 @@ class RawDataGetter:
 # #             df.to_csv(f"{station_name}_nov.csv")
 # #         except Exception as err:
 # #             print(station_name + " has an error")
+url = f"https://api.ims.gov.il/v1/envista/stations/6/data/1/daily"
+results = requests.request("GET", url=url, headers={'Authorization': f'ApiToken {TOKEN}'})
+pprint.pprint(results.text.encode("utf8"))
