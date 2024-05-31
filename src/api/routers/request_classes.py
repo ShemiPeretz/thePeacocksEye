@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional , Dict
+from typing import Optional, Dict, List
 from enum import Enum
 from typing import Union
 
@@ -14,19 +14,18 @@ class TimeInterval(BaseModel):
     toYear: int
     toMonth: int
     toDay: int
-    fromYear: int
 
 class GraphMeta(BaseModel):
     graphType: str
     graphSizeX: int
     graphSizeY: int
-    region: int
     station: int
     isTime: bool
-    channelX: int
-    channelNamex: str
-    channelsY: list[int]
-    channelNamesY: list[str]
+    channelX: str
+    channelNameX: str
+    channelsY: List[str]
+    channelNamesY: List[str]
     timeInterval: TimeInterval
-
-
+    hourly: bool
+    daily: bool
+    cumulative: bool

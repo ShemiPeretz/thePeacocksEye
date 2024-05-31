@@ -3,11 +3,17 @@ import os
 import pprint
 import traceback
 from src.api.IMS_getters.raw_data import RawDataGetter
-from request_classes import GraphMeta
+from .request_classes import GraphMeta, TimeInterval
 from fastapi import HTTPException, APIRouter
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
+from IPython.display import HTML
+from .channels_config import hourly_channels, daily_channels, non_cumulative_channels
+from src.api.historical_data_gov.getters import (get_historical_data_rain, get_historical_data_daily,
+                                                 get_historical_data_hourly, get_historical_data_radiation,
+                                                 get_station_metadata, map_station_id)
+
 load_dotenv()
 router = APIRouter()
 
@@ -19,8 +25,8 @@ from plotly.io import write_html
 
 app = FastAPI()
 
-async def generate_graph(x_data: str, t1: str, t2: str):
 
+async def generate_graph(x_data: str, t1: str, t2: str):
     data = pd.DataFrame({
         'X': [1, 2, 3, 4, 5],
         'Y': [10, 14, 18, 24, 30]
@@ -37,31 +43,34 @@ async def generate_graph(x_data: str, t1: str, t2: str):
 
     return {"graph_json": graph_json}
 
-def create_graph(data,x_name:str ,y_names:list, graph_type, x_size, y_size):
 
+def create_graph(data, x_name: str, y_names: list, graph_type, x_size, y_size):
     # Create an interactive line chart using Plotly
     if graph_type == "line":
-        fig = px.line(data, x=x_name, y=y_names,width=x_size, height=y_size, title='Interactive Line Chart')
+        fig = px.line(data, x=x_name, y=y_names, width=x_size, height=y_size, title='Interactive Line Chart')
     elif graph_type == "bar":
-        fig = px.bar(data, x=x_name, y=y_names,width=x_size, height=y_size, title='Interactive Bar Chart')
+        fig = px.bar(data, x=x_name, y=y_names, width=x_size, height=y_size, title='Interactive Bar Chart')
+    elif graph_type == "scatter":
+        fig = px.scatter(data, x=x_name, y=y_names,width=x_size, height=y_size, title='Interactive Scatter Chart')
     graph_json = fig.to_html()
 
     return graph_json
+
+
 def extract_data(chanel_json):
     values = [data_item['channels'][0]['value'] for data_item in chanel_json['data']]
     return values
 
 
-
-def get_time_graph(start_time,data, graph_type, x_size, y_size):
-
+def get_time_graph(start_time, data, graph_type, x_size, y_size):
     time_interval = timedelta(minutes=10)
     num_points = len(list(data.values())[0])
     times = [start_time + i * time_interval for i in range(num_points)]
+    print(times)
     y_names = list(data.keys())
     data["Time"] = times
 
-    fig = px.scatter(data, x='Time', y=y_names,width=x_size, height=y_size, title='Data Over time')
+    fig = px.scatter(data, x='Time', y=y_names, width=x_size, height=y_size, title='Data Over time')
 
     # Set X-axis tick positions and labels
     hourly_ticks = pd.date_range(start=start_time, end=start_time + num_points * time_interval, freq='1D')
@@ -70,92 +79,102 @@ def get_time_graph(start_time,data, graph_type, x_size, y_size):
     graph = fig.to_html(include_plotlyjs='cdn', full_html=False)
 
     return graph
+
+
+def validate_channels(channel_list):
+    return any([all([channel in hourly_channels for channel in channel_list]),
+                all([channel in daily_channels for channel in channel_list])])
+def get_range(start, end):
+    return [i for i in range(start, end + 1)]
+
+def map_channels_names(channel_list):
+    pass
 @router.post("/graphs/")
 async def get_graph(request: GraphMeta):
-    """
-    :param request:
-        graphType: str
-        graphSizeX: int
-        graphSizeY: int
-        region: int
-        station: int
-        isTime: bool
-        channelX: int
-        channelNamex: str
-        channelsY: list[int]
-        channelNamesY: list[str]
-        timeInterval: TimeInterval
-    :return:
-    """
     request = request.dict()
-    from_time, to_time = request["timeInterval"]
-    from_year, from_month, from_day = from_time
-    to_year, to_month, to_day = to_time
-    data_request = {"request": "range",
-                "data" : {
-                    "range":{
-                          "from":{
-                                "year": from_year,
-                                "month": from_month,
-                                "day" :from_day
-                                },
-                            "to": {
-                                "year": to_year,
-                                "month": to_month,
-                                "day": to_day
-                            }
-
-                          }
-                   }
-            }
-    getter = RawDataGetter()
+    interval_dict = request["timeInterval"]
+    from_year, from_month, from_day = interval_dict["fromYear"], interval_dict["fromMonth"], interval_dict["fromDay"]
+    to_year, to_month, to_day = interval_dict["toYear"], interval_dict["toMonth"], interval_dict["toDay"]
+    year = get_range(from_year, to_year)
+    month = get_range(from_month, to_month)
+    day = get_range(from_day, to_day)
+    stations_id = request["station"]
     y_channels = request["channelsY"]
-    y_names = request["channelNamesY"]
-    y_data = {y_names[i]:
-                  extract_data(getter.get_channels(channel_id=y_channels[i],
-                                      stations_id=request["station"],
-                                      request=data_request))for i in range(len(y_names))}
-    if request["isTime"]:
-        starting_point = datetime(from_year,from_month,from_day, 0, 0, 0)
-        graph = get_time_graph(start_time=starting_point,
-                               data=y_data,
-                               graph_type=request["graphType"],
-                               x_size=request["graphSizeX"],
-                               y_size=request["graphSizeY"])
+    x_channels = request["channelX"]
+    if x_channels in y_channels:
+        return JSONResponse({"error": "Channels X and Y can't have overlap"},
+                            status_code=400)
+    channels = y_channels + [x_channels]
+    is_valid = validate_channels(channels)
+    if not is_valid: return JSONResponse({"error": "Channels Not exists"}, status_code=400)
+
+    if request["hourly"]:
+        df = get_historical_data_hourly(station_number=stations_id,
+                                        channels=channels,
+                                        year=year,
+                                        month=month,
+                                        day=day)
+    elif request["daily"]:
+        df = get_historical_data_daily(station_number=stations_id,
+                                       channels=channels,
+                                       year=year,
+                                       month=month,
+                                       day=day)
     else:
-        x_data = extract_data(getter.get_channels(channel_id=request["channelX"],
-                                     stations_id=request["station"],
-                                     request=data_request))
-        data = y_data
-        x_name = request["channelNameX"]
-        data[x_name] = x_data
-        graph = create_graph(data, x_name ,y_names, request["graphType"], request["graphSizeX"], request["graphSizeY"])
+        df = None
+    if datetime.today().year in year and (datetime.today().month -1 in month or datetime.today().month -2 in month):
+        ims_channels_names = map_channels_names(channels)
+        data = RawDataGetter.get_channels_from_db_in_range(channel_name=ims_channels_names,
+                                                           station_id=stations_id,
+                                                           start_date="-".join([str(from_year),
+                                                                                str(from_month),
+                                                                                str(from_day)]),
+                                                           end_date="-".join([str(to_year),
+                                                                              str(to_month),
+                                                                              str(to_day)]))
+        ims_df = pd.DataFrame(data, columns=channels)
+        df = pd.concat([df, ims_df])
 
+
+    if df is None:
+        return JSONResponse({"error": "No data"})
+    y_names = request["channelNamesY"]
+    x_name = request["channelNameX"]
+    if request["cumulative"]:
+        cumulative_columns = [col for col in df.columns.tolist() if col not in non_cumulative_channels]
+        df[cumulative_columns] = df[cumulative_columns].cumsum()
+    graph = create_graph(data=df,
+                         x_name=x_name,
+                         y_names=y_names,
+                         graph_type=request["graphType"],
+                         x_size=request["graphSizeX"],
+                         y_size=request["graphSizeY"])
     return {"graph_json": graph}
-
+request = GraphMeta(graphType="line",
+                    graphSizeX=1000,
+                    graphSizeY=1000,
+                    station=9111,
+                    isTime=False,
+                    channelX="time_obs",
+                    channelNameX="time_obs",
+                    channelsY=["tmp_air_wet"],
+                    channelNamesY=["tmp_air_wet"],
+                    timeInterval=TimeInterval(fromYear=2023,
+                                              fromMonth=3,
+                                              fromDay=1,
+                                              toYear=2023,
+                                              toMonth=3,
+                                              toDay=20),
+                    hourly=True,
+                    daily=False,
+                    cumulative=True)
+# import asyncio
+# import webview
+# def display_plot(html_content):
+#     webview.create_window('Plot', html=html_content)
+#     webview.start()
 #
-# data = {"X" : ["22-10-2020","23-10-2020","24-10-2020","25-10-2020"], "Y1": [1,2,3,4]}
-# fig = px.line(data, x='X', y=["Y1"],width=800, height=400, title='Interactive Line Chart')
-# fig.show()
-data_request = {"request": "range",
-                "data" : {
-                    "range":{
-                          "from":{
-                                "year": 2024,
-                                "month": 3,
-                                "day" :9
-                                },
-                            "to": {
-                                "year": 2024,
-                                "month": 3,
-                                "day": 10
-                            }
+# graph = asyncio.run(get_graph(request))
+#
 
-                          }
-                   }
-            }
-# import pprint
-# data = RawDataGetter().get_channels(stations_id=6,channel_id=1,request=data_request)
-# pprint.pprint(data)
-# fig = go.Figure(data=go.Scatter(x=[1, 2, 3], y=[4, 1, 2]))
-# print(times)
+

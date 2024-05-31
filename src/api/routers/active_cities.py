@@ -1,6 +1,3 @@
-import logging
-import os
-import traceback
 from src.api.IMS_getters.raw_data import RawDataGetter
 from fastapi import HTTPException, APIRouter
 from fastapi.responses import JSONResponse
