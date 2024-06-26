@@ -1,31 +1,51 @@
 from pydantic import BaseModel
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Union
 from enum import Enum
-from typing import Union
+from datetime import datetime
+
 
 class WeatherSummary(BaseModel):
     station: int
 
 
+class Hours(str, Enum):
+    six_am = "06:00"
+    six_pm = "18:00"
+    twenty_am = "00:00"
+    twelve_pm = "12:00"
+
+
+class Range(BaseModel):
+    starting_from: Union[int, Hours]
+    ending_at: Union[int, Hours]
+
+
 class TimeInterval(BaseModel):
-    fromYear: int
-    fromMonth: int
-    fromDay: int
-    toYear: int
-    toMonth: int
-    toDay: int
+    year: Optional[Range] = None
+    month: Optional[Range] = None
+    day: Optional[Range] = None
+    hour: Optional[Range] = None
+
+
+class Dataset(str, Enum):
+    daily_rain = "daily_rain"
+    monty_rain = "monty_rain"
+    yearly_rain = "yearly_rain"
+    hourly = "hourly"
+    daily = "daily"
+    radiation = "radiation"
+
 
 class GraphMeta(BaseModel):
     graphType: str
     graphSizeX: int
     graphSizeY: int
-    station: int
+    station: List[int]
     isTime: bool
     channelX: str
     channelNameX: str
     channelsY: List[str]
     channelNamesY: List[str]
-    timeInterval: TimeInterval
-    hourly: bool
-    daily: bool
+    dataset: List[Dataset]
+    timeInterval: Optional[TimeInterval]
     cumulative: bool

@@ -1,12 +1,21 @@
 # Use an official Python runtime as a parent image
 FROM python:3.9-slim
 
-# Set the working directory in the container
-WORKDIR /usr/src/app
+# Set the working directory to /Engine/api
+WORKDIR /server_api/
 
-# Copy the current directory contents into the container at /usr/src/app
-COPY . .
+RUN mkdir "src"
 
-# Run the scripts when the container launches
-CMD ["python main.py & python main_script2.py"]
+# Copy the entire project into the container at /Engine/api
+COPY src ./src
+COPY .env ./src
 
+#Copy requirements file
+COPY requirements.txt .
+#Install requirements
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Make port 80 available to the world outside this container
+EXPOSE 80
+# Run the FastAPI application in main.py when the container launches
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "80"]
