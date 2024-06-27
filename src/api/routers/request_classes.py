@@ -21,10 +21,12 @@ class Range(BaseModel):
 
 
 class TimeInterval(BaseModel):
-    year: Optional[Range] = None
-    month: Optional[Range] = None
-    day: Optional[Range] = None
-    hour: Optional[Range] = None
+    startTime: datetime = None
+    endTime: datetime = None
+    # year: Optional[Range] = None
+    # month: Optional[Range] = None
+    # day: Optional[Range] = None
+    # hour: Optional[Range] = None
 
 
 class Dataset(str, Enum):
@@ -46,6 +48,6 @@ class GraphMeta(BaseModel):
     channelNameX: str
     channelsY: List[str]
     channelNamesY: List[str]
-    dataset: List[Dataset]
-    timeInterval: Optional[TimeInterval]
+    dataset: Dataset
+    timeInterval: TimeInterval
     cumulative: bool

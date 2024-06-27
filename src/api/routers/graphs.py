@@ -2,12 +2,13 @@ import datetime
 import logging
 import uuid
 import os
-from request_classes import GraphMeta, TimeInterval, Range, Hours, Dataset
+from .request_classes import GraphMeta, TimeInterval, Range, Hours, Dataset
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from datetime import timedelta
-from channels_config import (hourly_channels, daily_channels, rain_channels_daily, rain_channels_yearly,
+from dateutil.relativedelta import relativedelta
+from .channels_config import (hourly_channels, daily_channels, rain_channels_daily, rain_channels_yearly,
                              radiation_channels,rain_channels_monthly, non_cumulative_channels, dataset_resource_id_map)
 from src.api.historical_data_gov.getters import get_historical_data
 
@@ -160,12 +161,18 @@ def map_channels_names(channel_list):
 @router.post("/graphs/")
 async def get_graph(request: GraphMeta):
     request = request.dict()
-    interval_dict = request["timeInterval"]
+    time_interval = request["timeInterval"]
+    # Create a new TimeInterval object
+    new_time_interval = TimeInterval(
+        startTime=time_interval["startTime"],
+        endTime=time_interval["endTime"]
+    )
+    interval_dict = get_range_from_interval(new_time_interval.startTime, new_time_interval.endTime)
     stations_id = request["station"]
     filters = generate_filters(interval_dict=interval_dict, station_id=stations_id)
     y_channels = request["channelsY"]
     x_channels = request["channelX"]
-    datasets = request["dataset"]
+    dataset = request["dataset"]
 
     if x_channels in y_channels:
         return JSONResponse({"error": "Channels X and Y can't have overlap"},
@@ -177,7 +184,7 @@ async def get_graph(request: GraphMeta):
 
     df_list = [get_historical_data(resource_id=dataset_resource_id_map[dataset],
                                    filters=filters
-                                   ) for dataset in datasets]
+                                   )]
 
     df = join_dataframes(df_list)
 
@@ -195,6 +202,14 @@ async def get_graph(request: GraphMeta):
                          y_size=request["graphSizeY"])
     return {"http_graph": graph}
 
+def get_range_from_interval(start: datetime, end: datetime):
+    diff = relativedelta(end, start)
+    return {
+        "year": {"starting_from": start.year, "ending_at": end.year},
+        "month": {"starting_from": start.month, "ending_at": end.month},
+        "day": {"starting_from": start.day, "ending_at": end.day},
+        "hour": {"starting_from": start.hour, "ending_at": end.hour}
+    }
 
 request = GraphMeta(
     graphType="line",
@@ -206,7 +221,7 @@ request = GraphMeta(
     channelNameX="Time",
     channelsY=["rain_06_next", "tmp_air_max"],
     channelNamesY=["Rainfall", "Temperature_Air_Max"],
-    dataset=[Dataset.daily, Dataset.daily_rain],
+    dataset= Dataset.daily,
     timeInterval=TimeInterval(
         year=Range(starting_from=2020, ending_at=2023),
         month=Range(starting_from=1, ending_at=12),
@@ -214,13 +229,13 @@ request = GraphMeta(
     ),
     cumulative=False
 )
-import asyncio
-import webview
+# import asyncio
+# import webview
+#
+#
+# def display_plot(html_content):
+#     webview.create_window('Plot', html=html_content)
+#     webview.start()
 
 
-def display_plot(html_content):
-    webview.create_window('Plot', html=html_content)
-    webview.start()
-
-
-graph = asyncio.run(get_graph(request))
+# graph = asyncio.run(get_graph(request))
