@@ -4,7 +4,7 @@ import re
 import requests
 from dotenv import load_dotenv
 from fastapi import HTTPException, APIRouter
-
+from starlette.responses import JSONResponse
 
 load_dotenv()
 router = APIRouter()
@@ -60,8 +60,9 @@ def parse_xml_to_json(xml_url):
 
 
 @router.get("/get-alerts/")
-def get_alerts():
-    return parse_xml_to_json(xml_url)
+async def get_alerts():
+    alerts = parse_xml_to_json(xml_url)
+    return JSONResponse(content=alerts)
 
 # json_result = parse_xml_to_json(xml_url)
 # print(json_result)
