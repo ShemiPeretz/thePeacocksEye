@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from .routers import active_cities,weather_summery,graphs,stations_for_graphs
+from routers import active_cities,weather_summery,graphs,stations_for_graphs, alerts
 from dotenv import load_dotenv
 load_dotenv()
 app = FastAPI()
@@ -10,6 +10,7 @@ app = FastAPI()
 app.include_router(active_cities.router)
 app.include_router(weather_summery.router)
 app.include_router(graphs.router)
+app.include_router(alerts.router)
 # app.include_router(stations_for_graphs.router)
 # Allow requests from all origins with specific methods and headers
 app.add_middleware(

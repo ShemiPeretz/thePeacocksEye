@@ -56,13 +56,10 @@ def parse_xml_to_json(xml_url):
     if not items:
         return json.dumps("no alerts", indent=4)
 
-    return json.dumps(items, indent=4)
+    return items
 
 
 @router.get("/get-alerts/")
 async def get_alerts():
     alerts = parse_xml_to_json(xml_url)
-    return JSONResponse(content=alerts)
-
-# json_result = parse_xml_to_json(xml_url)
-# print(json_result)
+    return JSONResponse(content={"alerts": alerts})
