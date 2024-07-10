@@ -26,9 +26,9 @@ async def get_weather_summery(request: WeatherSummary):
             "data": {"time_period": "latest"}
                }
     getter = RawDataGetter()
-    channels_names = {"IMS": ["TD", "WS", "WD", "RH", "Grad"],
+    channels_names = {"IMS": ["TD", "WS", "WD", "RH", "Grad", "TDmax", "TDmin", "Rain", "BP"],
                       "DB": ["temperature_dry", "wind_speed", "wind_direction",
-                             "relative_humidity", "radiation_global"]
+                             "relative_humidity", "radiation_global", "temperature_max", "temperature_min", "rain", "pressure"]
                       }
 
     try:
