@@ -42,10 +42,11 @@ def create_graph(data, x_name: str, y_names: list, x_channel: str, y_channels: l
         fig = px.scatter(data, x=x_name, y=y_names, width=x_size, height=y_size,
                          title='Interactive Scatter Chart', labels=labels)
     # graph_json = fig.to_html()
-    # graph_json = fig.to_json()
+    graph_json = fig.to_json()
     graph_id = str(uuid.uuid4())
-    fig.write_html(f"./graphs/{graph_type}_{graph_id}.html")
-    return graph_id
+    fig.show()
+    # fig.write_html(f"./graphs/{graph_type}_{graph_id}.html")
+    return graph_json
 
 
 def extract_data(chanel_json):
@@ -73,11 +74,10 @@ def get_time_graph(start_time, data, graph_type, x_size, y_size):
 
 
 def validate_channels(channel_list):
-
-    return any([all([channel in channel_config]) for channel_config in [hourly_channels, daily_channels,
-                                                                        rain_channels_daily, rain_channels_monthly,
-                                                                        rain_channels_yearly, radiation_channels]
-                for channel in channel_list])
+    isValid = any([all([channel in channel_config]) for channel_config in
+             [hourly_channels, daily_channels, rain_channels_daily, rain_channels_monthly, rain_channels_yearly,
+              radiation_channels] for channel in channel_list])
+    return isValid
 
 
 
@@ -200,7 +200,7 @@ async def get_graph(request: GraphMeta):
                          graph_type=request["graphType"],
                          x_size=request["graphSizeX"],
                          y_size=request["graphSizeY"])
-    return {"http_graph": graph}
+    return JSONResponse(content=graph)
 
 def get_range_from_interval(start: datetime, end: datetime):
     diff = relativedelta(end, start)
@@ -208,34 +208,37 @@ def get_range_from_interval(start: datetime, end: datetime):
         "year": {"starting_from": start.year, "ending_at": end.year},
         "month": {"starting_from": start.month, "ending_at": end.month},
         "day": {"starting_from": start.day, "ending_at": end.day},
-        "hour": {"starting_from": start.hour, "ending_at": end.hour}
+        # "hour": {"starting_from": start.hour, "ending_at": end.hour}
     }
 
-request = GraphMeta(
-    graphType="line",
-    graphSizeX=800,
-    graphSizeY=600,
-    station=[241260, 190],
-    isTime=True,
-    channelX="time_obs",
-    channelNameX="Time",
-    channelsY=["rain_06_next", "tmp_air_max"],
-    channelNamesY=["Rainfall", "Temperature_Air_Max"],
-    dataset= Dataset.daily,
-    timeInterval=TimeInterval(
-        year=Range(starting_from=2020, ending_at=2023),
-        month=Range(starting_from=1, ending_at=12),
-        day=Range(starting_from=1, ending_at=31)
-    ),
-    cumulative=False
-)
+# request = GraphMeta(
+#     graphType="line",
+#     graphSizeX=800,
+#     graphSizeY=600,
+#     station=[241260, 190],
+#     isTime=True,
+#     channelX="time_obs",
+#     channelNameX="Time",
+#     channelsY=["tmp_air_max"],
+#     channelNamesY=["Temperature_Air_Max"],
+#     dataset= Dataset.daily,
+#     timeInterval=TimeInterval(
+#         startTime=datetime.datetime.now() - datetime.timedelta(days=2*365),
+#         endTime=datetime.datetime.now() - datetime.timedelta(days=1*365)
+#     ),
+#     cumulative=False
+# )
 # import asyncio
-# import webview
+# import json
+# # import webview
+# #
+# #
+# # def display_plot(html_content):
+# #     webview.create_window('Plot', html=html_content)
+# #     webview.start()
 #
 #
-# def display_plot(html_content):
-#     webview.create_window('Plot', html=html_content)
-#     webview.start()
-
-
 # graph = asyncio.run(get_graph(request))
+# json_file_path = 'C:\\Users\\shemi\\thePeacocksEyeClient\\src\\assets\\graph1.json'
+# with open(json_file_path, 'w', encoding='utf-8') as json_file:
+#     json.dump(json.loads(graph), json_file, indent=4)
