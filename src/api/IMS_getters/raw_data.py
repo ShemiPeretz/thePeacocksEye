@@ -8,6 +8,7 @@ import logging
 import traceback
 import datetime
 import mysql.connector
+from tenacity import retry, stop_after_attempt, wait_exponential
 dotenv.load_dotenv()
 
 MYSQL_HOST = os.getenv("MYSQL_HOST")
@@ -109,6 +110,10 @@ class RawDataGetter:
             logging.error(f"Unexpected error occurred while getting stations: %s", err)
             logging.error(traceback.format_exc())
         return None
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+    def get_stations_with_retry(self):
+        return self.get_stations()
 
     def get_url_period(self,stations_id, channel_id, time_period):
 
@@ -269,6 +274,9 @@ class RawDataGetter:
             results = requests.request("GET", url=url, headers=self.headers)
             results.encoding = results.apparent_encoding
             if results.status_code == 200:
+                if '<title>שגיאה</title>' in results.text:
+                    logging.warning("Received error page despite 200 status code")
+                    return None
                 data = json.loads(results.text)
                 return data
             elif results.status_code == 401:
@@ -294,7 +302,9 @@ class RawDataGetter:
             logging.error(traceback.format_exc())
         return None
 
-
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+    def get_channels_with_retry(self, stations_id, channel_id, request):
+        return self.get_channels(stations_id, channel_id, request)
 
     def get_channels_status(self, station_id):
 

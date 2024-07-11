@@ -211,6 +211,7 @@ def get_range_from_interval(start: datetime, end: datetime):
         # "hour": {"starting_from": start.hour, "ending_at": end.hour}
     }
 
+
 # request = GraphMeta(
 #     graphType="line",
 #     graphSizeX=800,
