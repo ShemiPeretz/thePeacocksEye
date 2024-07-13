@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 import uuid
 import os
@@ -36,10 +37,10 @@ def create_graph(data, x_name: str, y_names: list, x_channel: str, y_channels: l
         fig = px.line(data, x=x_channel, y=y_channels, width=x_size, height=y_size,
                       title='Interactive Line Chart', labels=labels)
     elif graph_type == "bar":
-        fig = px.bar(data, x=x_name, y=y_names, width=x_size, height=y_size,
+        fig = px.bar(data, x=x_channel, y=y_channels, width=x_size, height=y_size,
                      title='Interactive Bar Chart', labels=labels)
     elif graph_type == "scatter":
-        fig = px.scatter(data, x=x_name, y=y_names, width=x_size, height=y_size,
+        fig = px.scatter(data, x=x_channel, y=y_channels, width=x_size, height=y_size,
                          title='Interactive Scatter Chart', labels=labels)
     # graph_json = fig.to_html()
     graph_json = fig.to_json()
@@ -193,14 +194,22 @@ async def get_graph(request: GraphMeta):
     df = transform_data(df=df, channels=channels, interval_dict=interval_dict, cumulative=request["cumulative"])
 
     graph = create_graph(data=df,
-                         x_channel=x_channels,
-                         y_channels=y_channels,
                          x_name=request["channelNameX"],
                          y_names=request["channelNamesY"],
+                         x_channel=x_channels,
+                         y_channels=y_channels,
                          graph_type=request["graphType"],
                          x_size=request["graphSizeX"],
                          y_size=request["graphSizeY"])
     return JSONResponse(content=graph)
+
+
+@router.get("/get-default-graph/")
+async def get_default_graph():
+    with open("C:\\Users\\shemi\\thePeacocksEyeClient\\src\\assets\\graphs\\defaultGraph.json", 'r') as f:
+        graph = json.load(f)
+    return JSONResponse(content=graph)
+
 
 def get_range_from_interval(start: datetime, end: datetime):
     diff = relativedelta(end, start)
