@@ -385,7 +385,7 @@ class RawDataGetter:
                                                                                   "location",
                                                                                   "name",
                                                                                   "stationId"
-                                                                                  ]}
+                                                                                  ]} 
             station_parsed_data["monitors"] = monitors
             return station_parsed_data
         else:

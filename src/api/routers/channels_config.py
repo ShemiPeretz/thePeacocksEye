@@ -33,8 +33,7 @@ rain_channels_yearly = ['stn_num', 'time_obs', 'rain_ttl']
 
 
 radiation_channels = ['stn_num', 'time_obs', 'rad_type',
-                      "rad_0", "rad_1", "rad_2",
-                      "rad_3", "rad_4", "rad_5",
+                      "rad_4", "rad_5",
                       "rad_6", "rad_7", "rad_8",
                       "rad_9", "rad_10", "rad_11",
                       "rad_12", "rad_13", "rad_14",
@@ -50,4 +49,13 @@ dataset_resource_id_map = {
     "yearly_rain": RAIN_YEARLY_RESOURCE_ID,
     "monthly_rain": RAIN_MONTHLY_RESOURCE_ID,
     "daily_rain": RAIN_DAILY_RESOURCE_ID
+}
+
+dataset_filters = {
+    "daily": ["year", "month", "day"],
+    "hourly": ["year", "month", "day"],
+    "radiation": ["year", "month", "day"],
+    "yearly_rain": ["time_obs"],
+    "monthly_rain": ["year", "month"],
+    "daily_rain": ["year", "month", "day"]
 }

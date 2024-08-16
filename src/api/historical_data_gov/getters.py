@@ -53,35 +53,35 @@ def generate_url(resource_id: str, filters: dict) -> str:
     base_url = 'https://data.gov.il/api/action/datastore_search?resource_id={resource_id}&'
 
     # Constructing the filters part of the URL
-    filters_str = ','.join([f'"{key}":{value}' for key, value in filters.items()])
+    filters_str = ','.join([f'"{key}":{list(value)}' for key, value in filters.items()])
     filters_url_part = f'filters={{{filters_str}}}&limit=10000000000'
 
     # Combining everything into the final URL
     final_url = base_url.format(resource_id=resource_id) + filters_url_part
     return final_url
 
+#
+# station_metadata = get_station_metadata()
+# rain_stations = station_metadata[station_metadata["stn_type"] == 2][
+#     ["stn_num", "stn_name", "stn_name_heb", "date_web_frst", "date_web_last"]].rename(
+#     columns={"stn_num": "station_number",
+#              "stn_name": "station_name_english",
+#              "station_name_heb": "station_name_hebrew",
+#              "date_web_frst": "first_data_date",
+#              "date_web_last": "last_data_date"})
+# radiation_stations = station_metadata[station_metadata["stn_type"] == 4].rename(
+#     columns={"stn_num": "station_number",
+#              "stn_name": "station_name_english",
+#              "station_name_heb": "station_name_hebrew",
+#              "date_web_frst": "first_data_date",
+#              "date_web_last": "last_data_date"})
+# weather_stations = station_metadata[station_metadata["stn_type"] == 1].rename(
+#     columns={"stn_num": "station_number",
+#              "stn_name": "station_name_english",
+#              "station_name_heb": "station_name_hebrew",
+#              "date_web_frst": "first_data_date",
+#              "date_web_last": "last_data_date"})
 
-station_metadata = get_station_metadata()
-rain_stations = station_metadata[station_metadata["stn_type"] == 2][
-    ["stn_num", "stn_name", "stn_name_heb", "date_web_frst", "date_web_last"]].rename(
-    columns={"stn_num": "station_number",
-             "stn_name": "station_name_english",
-             "station_name_heb": "station_name_hebrew",
-             "date_web_frst": "first_data_date",
-             "date_web_last": "last_data_date"})
-radiation_stations = station_metadata[station_metadata["stn_type"] == 4].rename(
-    columns={"stn_num": "station_number",
-             "stn_name": "station_name_english",
-             "station_name_heb": "station_name_hebrew",
-             "date_web_frst": "first_data_date",
-             "date_web_last": "last_data_date"})
-weather_stations = station_metadata[station_metadata["stn_type"] == 1].rename(
-    columns={"stn_num": "station_number",
-             "stn_name": "station_name_english",
-             "station_name_heb": "station_name_hebrew",
-             "date_web_frst": "first_data_date",
-             "date_web_last": "last_data_date"})
-
-rain_stations.to_csv("rain_stations.csv", index=False)
-weather_stations.to_csv("weather_stations.csv", index=False)
-radiation_stations.to_csv("radiation_stations.csv", index=False)
+# rain_stations.to_csv("rain_stations.csv", index=False)
+# weather_stations.to_csv("weather_stations.csv", index=False)
+# radiation_stations.to_csv("radiation_stations.csv", index=False)

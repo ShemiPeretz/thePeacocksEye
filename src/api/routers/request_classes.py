@@ -23,6 +23,7 @@ class Range(BaseModel):
 class TimeInterval(BaseModel):
     startTime: datetime = None
     endTime: datetime = None
+    interval: str = "day"
     # year: Optional[Range] = None
     # month: Optional[Range] = None
     # day: Optional[Range] = None
@@ -31,7 +32,7 @@ class TimeInterval(BaseModel):
 
 class Dataset(str, Enum):
     daily_rain = "daily_rain"
-    monty_rain = "monty_rain"
+    monty_rain = "monthly_rain"
     yearly_rain = "yearly_rain"
     hourly = "hourly"
     daily = "daily"
