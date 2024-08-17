@@ -1,13 +1,15 @@
-from fastapi import FastAPI, HTTPException
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException, APIRouter
 from fastapi.responses import JSONResponse
 import requests
 from typing import List, Dict
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
-app = FastAPI()
+load_dotenv()
+router = APIRouter()
 
 API_URL = "https://Air-api.sviva.gov.il/v1/envista/stations/6/data/latest"
-API_TOKEN = "86764FD9-58CE-4C43-9B47-70E60C71203A"  # Replace with your actual API token
+API_TOKEN = "86764FD9-58CE-4C43-9B47-70E60C71203A"
 
 
 @retry(
@@ -46,7 +48,7 @@ def filter_channels(station_channels: List[Dict]) -> Dict:
     return filtered_monitors
 
 
-@app.get("/air_quality")
+@router.get("/air-quality")
 def get_air_quality():
     try:
         raw_data = fetch_air_quality_data()

@@ -3,13 +3,13 @@ import json
 import logging
 import uuid
 import os
-from request_classes import GraphMeta, TimeInterval, Range, Hours, Dataset
+from .request_classes import GraphMeta, TimeInterval, Range, Hours, Dataset
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
-from channels_config import (hourly_channels, daily_channels, rain_channels_daily, rain_channels_yearly,
+from .channels_config import (hourly_channels, daily_channels, rain_channels_daily, rain_channels_yearly,
                              radiation_channels,rain_channels_monthly, non_cumulative_channels, dataset_resource_id_map,
                              dataset_filters)
 from src.api.historical_data_gov.getters import get_historical_data

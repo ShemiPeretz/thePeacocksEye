@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 load_dotenv()
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+
 def get_channels_per_station(station_id, channels):
     getter = RawDataGetter()
     station_metadata = getter.get_stations(station_id=station_id)
@@ -19,7 +21,9 @@ def get_channels_per_station(station_id, channels):
         if channel_name in channels:
             station_channel_map[channel_name] = channel_id
     return station_channel_map
-@router.post("/weather_summery/")
+
+
+@router.post("/weather_summary/")
 async def get_weather_summery(request: WeatherSummary):
     station_id = request.dict()["station"]
     request = {"request": "time_period",
