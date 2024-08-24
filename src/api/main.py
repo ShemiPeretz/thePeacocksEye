@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from routers import active_cities, weather_summery, graphs, stations_for_graphs, alerts, air_quality
+from .routers import active_cities, weather_summery, graphs, stations_for_graphs, alerts, air_quality
 from dotenv import load_dotenv
 
 

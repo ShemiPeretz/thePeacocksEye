@@ -214,7 +214,8 @@ async def get_graph(request: GraphMeta):
                         channels=channels,
                         start_date=new_time_interval.startTime,
                         end_date=new_time_interval.endTime,
-                        cumulative=request["cumulative"])
+                        cumulative=request["cumulative"],
+                        dataset_type=request["dataset"])
 
     graph = create_graph(data=df,
                          x_name=request["channelNameX"],
