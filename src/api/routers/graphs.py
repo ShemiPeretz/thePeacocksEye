@@ -34,16 +34,49 @@ RAIN_YEARLY_RESOURCE_ID = os.getenv("RAIN_YEARLY_RESOURCE_ID")
 def create_graph(data, x_name: str, y_names: list, x_channel: str, y_channels: list, graph_type, x_size, y_size):
     labels = {channel: channel_name for channel_name, channel in zip(y_names, y_channels)}
     labels[x_channel] = x_name
-    if graph_type == "line":
-        fig = px.line(data, x=x_channel, y=y_channels, width=x_size, height=y_size,
-                      title='Interactive Line Chart', labels=labels)
-    elif graph_type == "bar":
-        fig = px.bar(data, x=x_channel, y=y_channels, width=x_size, height=y_size,
-                     title='Interactive Bar Chart', labels=labels)
-    elif graph_type == "scatter":
-        fig = px.scatter(data, x=x_channel, y=y_channels, width=x_size, height=y_size,
-                         title='Interactive Scatter Chart', labels=labels)
-    # graph_json = fig.to_html()
+    # Check if stn_num is in y_channels
+    if 'stn_num' in y_channels:
+        if graph_type == 'line':
+        # Melt the DataFrame to long format for plotting
+            melted_data = data.melt(id_vars=[x_channel, 'stn_num'],
+                                    value_vars=[col for col in y_channels if col != 'stn_num'],
+                                    var_name='channel', value_name='value')
+            # Plot the data with color based on stn_num and line_dash based on the channel
+            fig = px.line(melted_data, x=x_channel, y='value', color='stn_num', line_dash='channel',
+                          title='Interactive Line Chart',
+                          labels=labels,
+                          width=x_size, height=y_size)
+
+            # Update trace names in the legend
+            fig.for_each_trace(lambda t: t.update(name=f"Station: {t.name.split(',')[0].strip().split('.')[0]} Channel: {labels[t.name.split(',')[-1].strip()]}"))
+        else:
+            return JSONResponse({"error": "Station comparison only in line plot"},
+                            status_code=400)
+    else:
+        if len(y_channels) == 1:
+            y_channels = y_channels[0]
+        if graph_type == "line":
+            fig = px.line(data, x=x_channel, y=y_channels, width=x_size, height=y_size,
+                          title='Interactive Line Chart', labels=labels)
+        elif graph_type == "bar":
+            fig = px.bar(data, x=x_channel, y=y_channels, width=x_size, height=y_size,
+                         title='Interactive Bar Chart', labels=labels)
+        elif graph_type == "scatter":
+            fig = px.scatter(data, x=x_channel, y=y_channels, width=x_size, height=y_size,
+                             title='Interactive Scatter Chart', labels=labels)
+        for trace in fig.data:
+            trace.name = labels.get(trace.name, trace.name)
+    font_size = 12 # Adjust this value for overall font size
+    axis_title_font_size = 14
+    legend_font_size = 6
+    tick_font_size = 10
+    fig.update_layout(
+        font=dict(size=font_size),  # Overall font size
+        title_font=dict(size=font_size + 2),  # Title font size
+        xaxis=dict(title_font=dict(size=axis_title_font_size), tickfont=dict(size=tick_font_size)),
+        yaxis=dict(title_font=dict(size=axis_title_font_size), tickfont=dict(size=tick_font_size)),
+        legend=dict(font=dict(size=legend_font_size))
+    )
     graph_json = fig.to_json()
     graph_id = str(uuid.uuid4())
     with open(graph_id + '.json', 'w') as f:
@@ -78,11 +111,13 @@ def get_time_graph(start_time, data, graph_type, x_size, y_size):
 
 
 def validate_channels(channel_list):
-    isValid = any([all([channel in channel_config]) for channel_config in
-             [hourly_channels, daily_channels, rain_channels_daily, rain_channels_monthly, rain_channels_yearly,
-              radiation_channels] for channel in channel_list])
-    return isValid
-
+    channel_configs = [hourly_channels, daily_channels, rain_channels_daily, rain_channels_monthly, rain_channels_yearly,
+              radiation_channels]
+    for channel_config in channel_configs:
+        match = all([channel in channel_config for channel in channel_list])
+        if match:
+            return True
+    return False
 
 def get_date_edges(interval_dict):
     intervals = {k: v for k, v in interval_dict.items() if v}
@@ -135,6 +170,8 @@ def transform_data(df, channels, start_date, end_date, cumulative, dataset_type)
     if len(channels) == 0:
         channels = df.columns.tolist()
     df = df[channels]
+    channels_to_float = [c for c in channels if c != "time_obs"]
+    df[channels_to_float] = df[channels_to_float].astype("float64")
     if cumulative:
         cumulative_columns = [col for col in df.columns.tolist() if col not in non_cumulative_channels]
         df[cumulative_columns] = df[cumulative_columns].cumsum()
@@ -260,56 +297,56 @@ def get_range_from_interval(start: datetime, end: datetime):
 #
 # )
 
-def get_graph(request: GraphMeta):
-    request = request.dict()
-    time_interval = request["timeInterval"]
-    # Create a new TimeInterval object
-    new_time_interval = TimeInterval(
-        startTime=time_interval["startTime"],
-        endTime=time_interval["endTime"]
-    )
-    # interval_dict = get_range_from_interval(new_time_interval.startTime, new_time_interval.endTime)
-    stations_id = request["station"]
-    dataset = request["dataset"]
-    filters = generate_filters(start_date=new_time_interval.startTime,
-                               end_date=new_time_interval.endTime,
-                               station_id=stations_id,
-                               dataset_filters=dataset_filters[dataset])
-    y_channels = request["channelsY"]
-    x_channels = request["channelX"]
+# def get_graph(request: GraphMeta):
+#     request = request.dict()
+#     time_interval = request["timeInterval"]
+#     # Create a new TimeInterval object
+#     new_time_interval = TimeInterval(
+#         startTime=time_interval["startTime"],
+#         endTime=time_interval["endTime"]
+#     )
+#     # interval_dict = get_range_from_interval(new_time_interval.startTime, new_time_interval.endTime)
+#     stations_id = request["station"]
+#     dataset = request["dataset"]
+#     filters = generate_filters(start_date=new_time_interval.startTime,
+#                                end_date=new_time_interval.endTime,
+#                                station_id=stations_id,
+#                                dataset_filters=dataset_filters[dataset])
+#     y_channels = request["channelsY"]
+#     x_channels = request["channelX"]
+#
+#     if x_channels in y_channels:
+#         return JSONResponse({"error": "Channels X and Y can't have overlap"},
+#                             status_code=400)
+#     channels = y_channels + [x_channels]
+#     is_valid = validate_channels(channels)
+#     if not is_valid:
+#         return JSONResponse({"error": "Channels Not exists"}, status_code=400)
+#
+#     df_list = [get_historical_data(resource_id=dataset_resource_id_map[dataset],
+#                                    filters=filters
+#                                    )]
+#
+#     df = join_dataframes(df_list)
+#
+#     if df.empty or df[channels].dropna().empty:
+#         return JSONResponse({"error": "No data"})
+#     df = transform_data(df=df,
+#                         channels=channels,
+#                         start_date=new_time_interval.startTime,
+#                         end_date=new_time_interval.endTime,
+#                         cumulative=request["cumulative"],
+#                         dataset_type=dataset)
+#     print("Data shape: ", df.shape)
+#     graph = create_graph(data=df,
+#                          x_name=request["channelNameX"],
+#                          y_names=request["channelNamesY"],
+#                          x_channel=x_channels,
+#                          y_channels=y_channels,
+#                          graph_type=request["graphType"],
+#                          x_size=request["graphSizeX"],
+#                          y_size=request["graphSizeY"])
 
-    if x_channels in y_channels:
-        return JSONResponse({"error": "Channels X and Y can't have overlap"},
-                            status_code=400)
-    channels = y_channels + [x_channels]
-    is_valid = validate_channels(channels)
-    if not is_valid:
-        return JSONResponse({"error": "Channels Not exists"}, status_code=400)
-
-    df_list = [get_historical_data(resource_id=dataset_resource_id_map[dataset],
-                                   filters=filters
-                                   )]
-
-    df = join_dataframes(df_list)
-
-    if df.empty:
-        return JSONResponse({"error": "No data"})
-    df = transform_data(df=df,
-                        channels=channels,
-                        start_date=new_time_interval.startTime,
-                        end_date=new_time_interval.endTime,
-                        cumulative=request["cumulative"],
-                        dataset_type=dataset)
-    print("Data shape: ", df)
-    graph = create_graph(data=df,
-                         x_name=request["channelNameX"],
-                         y_names=request["channelNamesY"],
-                         x_channel=x_channels,
-                         y_channels=y_channels,
-                         graph_type=request["graphType"],
-                         x_size=request["graphSizeX"],
-                         y_size=request["graphSizeY"])
-
-request_dict = {'graphType': 'line', 'graphSizeX': 600, 'graphSizeY': 400, 'station': [249000], 'isTime': True, 'channelX': 'time_obs', 'channelNameX': 'date', 'channelsY': ['rain_ttl'], 'channelNamesY': ['Total rain'], 'dataset': 'yearly_rain', 'timeInterval': {'startTime': datetime.datetime(1933, 11, 23, 22, 0, tzinfo=datetime.timezone.utc), 'endTime': datetime.datetime(2010, 12, 24, 22, 0, tzinfo=datetime.timezone.utc)}, 'cumulative': False}
+request_dict = {'graphType': 'line', 'graphSizeX': 600, 'graphSizeY': 400, 'station': [3014, 4798], 'isTime': True, 'channelX': 'time_obs', 'channelNameX': 'Date', 'channelsY': ["tmp_air_min", "tmp_air_max", "stn_num"], 'channelNamesY': ['MIN_TEMP',"MAX_TEMP", "Station"], 'dataset': 'daily', 'timeInterval': {'startTime': datetime.datetime(2022, 12, 31, 0, 0, tzinfo=datetime.timezone.utc), 'endTime': datetime.datetime(2024, 12, 30, 22, 0, tzinfo=datetime.timezone.utc)}, 'cumulative': False}
 request = GraphMeta(**request_dict)
 get_graph(request)

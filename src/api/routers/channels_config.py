@@ -13,20 +13,18 @@ hourly_channels = ['stn_num', 'time_obs',
                    'prs_lvl_hgt', 'tmp_air_dry',
                    'tmp_air_wet', 'tmp_dew_pnt',
                    'hmd_rlt', 'wind_dir', 'wind_spd',
-                   'year', 'month', 'day',
-                   'hour']
+                ]
 
 daily_channels = ['stn_num', 'time_obs',
                   'tmp_air_max', 'tmp_air_min',
                   'tmp_grass_min', 'sns_drt',
-                  'rpr_gale', 'year',
-                  'month', 'day']
+                  'rpr_gale']
 
 # time_obs is the date.
-rain_channels_daily = ['stn_num', 'time_obs', 'rain_06_next', 'year', 'month', 'day']
+rain_channels_daily = ['stn_num', 'time_obs', 'rain_06_next']
 
 rain_channels_monthly = ["stn_num", "time_obs", "rain_ttl",
-                         "rain_days_num", "year", "month",
+                         "rain_days_num",
                          "rain_max_day", "rain_max_val"]
 
 rain_channels_yearly = ['stn_num', 'time_obs', 'rain_ttl']
@@ -38,9 +36,9 @@ radiation_channels = ['stn_num', 'time_obs', 'rad_type',
                       "rad_9", "rad_10", "rad_11",
                       "rad_12", "rad_13", "rad_14",
                       "rad_15", "rad_16", "rad_17",
-                      "year", "month", "day"]
+                      ]
 
-non_cumulative_channels = ['time_obs', 'stn_num', 'year', 'month', 'day', "hour", "rad_type"]
+non_cumulative_channels = ['time_obs', 'stn_num', "hour", "rad_type"]
 
 dataset_resource_id_map = {
     "daily": DAILY_RESOURCE_ID,
