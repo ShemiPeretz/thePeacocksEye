@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from .routers import active_cities, weather_summery, graphs, stations_for_graphs, alerts, air_quality
+from routers import active_cities, weather_summery, graphs, stations_for_graphs, alerts, air_quality
 from dotenv import load_dotenv
 
 
@@ -18,7 +18,7 @@ app.include_router(air_quality.router)
 # Allow requests from all origins with specific methods and headers
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],
+    allow_origins=["*"],
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Content-Type", "Authorization"],
 )

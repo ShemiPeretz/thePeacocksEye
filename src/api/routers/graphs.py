@@ -79,10 +79,9 @@ def create_graph(data, x_name: str, y_names: list, x_channel: str, y_channels: l
     )
     graph_json = fig.to_json()
     graph_id = str(uuid.uuid4())
-    with open(graph_id + '.json', 'w') as f:
-        json.dump(graph_json, f)
-    fig.show()
-    # fig.write_html(f"./graphs/{graph_type}_{graph_id}.html")
+    # with open(graph_id + '.json', 'w') as f:
+    #     json.dump(graph_json, f)
+    # fig.show()
     return graph_json
 
 
@@ -216,6 +215,7 @@ def map_channels_names(channel_list):
 @router.post("/graphs/")
 async def get_graph(request: GraphMeta):
     request = request.dict()
+    print(request)
     time_interval = request["timeInterval"]
     # Create a new TimeInterval object
     new_time_interval = TimeInterval(
@@ -267,6 +267,7 @@ async def get_graph(request: GraphMeta):
 
 @router.get("/get-default-graph/")
 async def get_default_graph():
+    # TODO: to config
     with open("C:\\Users\\shemi\\thePeacocksEyeClient\\src\\assets\\graphs\\defaultGraph.json", 'r') as f:
         graph = json.load(f)
     return JSONResponse(content=graph)
