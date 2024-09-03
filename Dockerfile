@@ -17,6 +17,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 RUN apt-get update && apt-get install -y iputils-ping
 # Make port 80 available to the world outside this container
-EXPOSE 80
+EXPOSE 8080
 # Run the FastAPI application in main.py when the container launches
-CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8080"]

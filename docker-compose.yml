@@ -1,0 +1,13 @@
+version: '3'
+services:
+  client:
+    image: peacockseyeclient
+    ports:
+      - "4200:4200"
+    depends_on:
+      - server
+
+  server:
+    image: peacockseye
+    ports:
+      - "8080:8080"
